@@ -14,8 +14,8 @@ c_cap = 3
 def getParams(t, X):
 	x1, x2 = X
 
-	m = 3 + 1.5*math.sin(abs(x2)*t)
-	c = 1.2 + 0.2*math.sin(abs(x2)*t)
+	m = 3 + 1.5*math.sin(x2*math.atan(x2)*t)
+	c = 1.2 + 0.2*math.sin(x2*math.atan(x2)*t)
 
 	return [m, c]
 
@@ -66,10 +66,10 @@ def model(t, X):
 	s = getSlidingSurface(t, X)
 	
 	x_d = getDesiredTraj(t)
-	u = -m_cap*abs(x_d[2] - gamma*(x2 - x_d[1])) - c_cap*(x2**2) - eta*sign(s)
+	u = -m_cap*(x_d[2] - gamma*(x2 - x_d[1]))*math.atan(x_d[2] - gamma*(x2 - x_d[1])) - c_cap*(x2**2) - eta*sign(s)
 
 	x1dot = x2
-	x2dot = (u - c*abs(x2)*x2)/m
+	x2dot = (u - c*x2*math.atan(x2)*x2)/m
 
 	return [x1dot, x2dot]
 
@@ -80,7 +80,7 @@ def simulateSMC():
 	t1 = 6
 	dt = 0.01
 
-	solver = ode(model).set_integrator('dopri5', nsteps= 1000000, method = 'bdf').set_initial_value(X0, t0)
+	solver = ode(model).set_integrator('dopri5', nsteps= 10000, method = 'bdf').set_initial_value(X0, t0)
 	
 	data = np.ones((601, 2))
 	i = 0
