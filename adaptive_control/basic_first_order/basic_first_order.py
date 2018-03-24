@@ -3,11 +3,11 @@ from scipy.integrate import ode
 import numpy as np
 from numpy import sin
 
-gamma = 2
+gamma = 4
 
 def model(t, X):
     y, ym, ar_cap, ay_cap = X
-    r = 4
+    r = 4*sin(3*t)
 
     e = y - ym
     u = ar_cap*r + ay_cap*y
