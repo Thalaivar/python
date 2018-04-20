@@ -54,8 +54,6 @@ def model(t, X, params):
     uy = (Ix - Iz)*wx*wz - l[1]*e[1] - eta[1]*tanh(sy)
     uz = (Iy - Ix)*wy*wx - l[2]*e[2] - eta[2]*tanh(sz)
 
-    u_x.append(ux)
-
     # return dot vector
     attitude = attitude*DEG_TO_RAD
 
@@ -70,6 +68,15 @@ def model(t, X, params):
     ie_wz_dot = e[2]
 
     return [phi_dot, theta_dot, psi_dot, wx_dot, wy_dot, wz_dot, ie_wx_dot, ie_wy_dot, ie_wz_dot]
+
+def check_list_for_item(x, y):
+    j = 0
+    for i in range(len(x)):
+        if x[i] < y:
+            j += 1
+
+        elif x[i] > y:
+            return j
 
 def main(kp, eta, l):
 
@@ -99,29 +106,53 @@ def main(kp, eta, l):
 if __name__ == '__main__':
 
     kp = [1.54, 1.54, 1.54]
-    eta = [0.21, 0.01, 0.01]
-    l = [0.04, 0.04, 0.04]
+    eta = [1.21, 1.01, 1.01]
+    l = [1.04, 1.04, 1.04]
 
     x, t = main(kp, eta, l)
+
+    j = check_list_for_item(t, 4)
+
+    i = 0
 
     phi = np.reshape(x[:,0], (2000,))
     theta = np.reshape(x[:,1], (2000,))
     psi = np.reshape(x[:,2], (2000,))
-
     wx = np.reshape(x[:,3], (2000,))
     wy = np.reshape(x[:,4], (2000,))
     wz = np.reshape(x[:,5], (2000,))
-
     ie_wx = np.reshape(x[:,6], (2000,))
     ie_wy = np.reshape(x[:,7], (2000,))
     ie_wz = np.reshape(x[:,8], (2000,))
 
-    angles = [phi, theta, psi]
+    e = np.zeros((2000, 3))
+
+    for i in range(len(phi)):
+        if i < j:
+            ex = phi[i]
+            ey = theta[i]
+            ez = psi[i]
+            e[i] = np.array([ex, ey, ez])
+
+        else:
+            ex = phi[i] - 40
+            ey = theta[i] + 10
+            ez = psi[i]
+            e[i] = np.array([ex, ey, ez])
+
+    sx = Ix*e[:,0] + l[0]*ie_wx
+    sy = Iy*e[:,1] + l[1]*ie_wy
+    sz = Iz*e[:,2] + l[2]*ie_wz
+
+    ux = (Iz - Iy)*wy*wz - l[0]*e[:,0] - eta[0]*tanh(sx)
+    uy = (Ix - Iz)*wx*wz - l[1]*e[:,1] - eta[1]*tanh(sy)
+    uz = (Iy - Ix)*wy*wx - l[2]*e[:,2] - eta[2]*tanh(sz)
+
     u = [ux, uy, uz]
 
     for i in range(3):
         plt.subplot(3, 1, i+1)
-        plt.plot(u[i])
+        plt.plot(t, u[i])
         plt.grid();
 
     plt.show()
