@@ -1,89 +1,146 @@
+import fuzzy_tools as fuzz
 import numpy as np
-import skfuzzy as fuzz
+from scipy.integrate import ode
+import math
 import matplotlib.pyplot as plt
 
-NL = 0
-NS = 1
-Z  = 2
-PS = 3
-PL = 4
+def ball_beam_rule_set(x, y):
+    z = np.zeros((5,))
+    z1 = 0
 
-def fuzzify(x, mfx_set, univ):
-    y = []
-    for a in mfx_set:
-        y.append(fuzz.interp_membership(univ, a, x))
+    # 0 - NL
+    # 1 - NS
+    # 2- Z
+    # 3- PS
+    # 4- PL
 
-    return y
+    # get firing of rule for output being NL
+    for i in range(len(x)):
+        z1 += x[0]*y[0]
+        z1 += x[0]*y[1]
+        z1 += x[0]*y[2]
+        z1 += x[1]*y[0]
+        z1 += x[1]*y[1]
+        z1 += x[2]*y[0]
+    z[0] = z1
+    z1 = 0
 
-def defuzzify(fuzz, vals):
+    # get firing of rule for output being NS
+    for i in range(len(x)):
+        z1 += x[0]*y[3]
+        z1 += x[1]*y[2]
+        z1 += x[2]*y[1]
+        z1 += x[3]*y[0]
+    z[1] = z1
+    z1 = 0
+
+    # get firing of rule for output being Z
+    for i in range(len(x)):
+        z1 += x[0]*y[4]
+        z1 += x[1]*y[3]
+        z1 += x[2]*y[2]
+        z1 += x[3]*y[1]
+        z1 += x[4]*y[0]
+    z[2] = z1
+    z1 = 0
+
+    # get firing of rule for output being PS
+    for i in range(len(x)):
+        z1 += x[1]*y[4]
+        z1 += x[2]*y[3]
+        z1 += x[3]*y[2]
+        z1 += x[4]*y[1]
+    z[3] = z1
+    z1 = 0
+
+    # get firing of rule of output being PL
+    for i in range(len(x)):
+        z1 += x[2]*y[4]
+        z1 += x[3]*y[3]
+        z1 += x[3]*y[4]
+        z1 += x[4]*y[2]
+        z1 += x[4]*y[3]
+        z1 += x[4]*y[4]
+    z[4] = z1
+    z1 = 0
+
+    return z
 
 def model(t, X, params):
-    e, edot = X
-    e_univ, edot_univ, rule_univ, e_mfx, edot_mfx, rule_mfx = params
+    x1, x2 = X
+    e = -x1
+    edot = -x2
+    e_mem, edot_mem, v_mem = params
 
-    e_fuzz = fuzzify(e, e_mfx, e_univ)
-    edot_fuzz = fuzzify(edot, edot_mfx, edot_univ)
+    e_fuzz_mem = []
+    edot_fuzz_mem = []
 
-    rule = get_rule_premise(e_fuzz, edot_fuzz)
+    for i in range(len(e_mem)):
+        e_fuzz_mem.append(fuzz.fuzzify(e, e_mem[i]))
+        edot_fuzz_mem.append(fuzz.fuzzify(edot, edot_mem[i]))
 
-    v = defuzzify(rule_mfx, rule)
+    rule_out = ball_beam_rule_set(e_fuzz_mem, edot_fuzz_mem)
 
-    xdot = edot
-    xddot = 9.81*sin(1.2*v)
+    v = fuzz.defuzzify(rule_out, v_mem, 'CAD')
 
-def get_rule_premise(e_fuzz, edot_fuzz):
-    rule = np.zeros((25,))
+    x1dot = x2
+    x2dot = 9.81*math.sin(0.2*v)
+
+    return [x1dot, x2dot]
+
+def main():
+    e_mem = []
+    edot_mem = []
+    v_mem = []
+
+    e_fuzz_set_1 = [-0.5, -0.5, -0.25]
+    e_fuzz_set_2 = [-0.5, -0.25, 0]
+    e_fuzz_set_3 = [-0.25, 0.0, 0.25]
+    e_fuzz_set_4 = [-0.25, 0.0, 0.25]
+    e_fuzz_set_5 = [0.25, 0.5, 0.5]
+    e_univ = np.linspace(-1.5, 1.5, 30)
+
+    edot_fuzz_set_1 = [-4, -4, -2]
+    edot_fuzz_set_2 = [-4, -2, 0]
+    edot_fuzz_set_3 = [-2, 0, 2]
+    edot_fuzz_set_4 = [0, 2, 4]
+    edot_fuzz_set_5 = [2, 4, 4]
+    edot_univ = np.linspace(-5, 5, 10)
+
+    v_fuzz_set_1 = [-10.0]
+    v_fuzz_set_2 = [-5.0]
+    v_fuzz_set_3 = [0.0]
+    v_fuzz_set_4 = [5.0]
+    v_fuzz_set_5 = [10.0]
+    v_univ = np.linspace(-10, 10, 100)
+
+    e_fuzz_set = [e_fuzz_set_1, e_fuzz_set_2, e_fuzz_set_3, e_fuzz_set_4, e_fuzz_set_5]
+    edot_fuzz_set = [edot_fuzz_set_1, edot_fuzz_set_2, edot_fuzz_set_3, edot_fuzz_set_4, edot_fuzz_set_5]
+    v_fuzz_set = [v_fuzz_set_1, v_fuzz_set_2, v_fuzz_set_3, v_fuzz_set_4, v_fuzz_set_5]
+    names = ['NL', 'NS', 'Z', 'PS', 'PL']
+    for i in range(len(edot_fuzz_set)):
+        e_mem.append(fuzz.membership('trimf', e_fuzz_set[i], e_univ, names[i]))
+        edot_mem.append(fuzz.membership('trimf', edot_fuzz_set[i], edot_univ, names[i]))
+        v_mem.append(fuzz.membership('singleton', v_fuzz_set[i], v_univ, names[i]))
+
+    params = [e_mem, edot_mem, v_mem]
+
+    x0 = [-0.12, 1.0]
+    t0 = 0
+    t1 = 10
+    dt = 0.01
+    r = ode(model).set_integrator('vode').set_initial_value(x0, t0).set_f_params(params)
+    state = np.zeros((1001,2))
+    t = []
     i = 0
-    for x in e_fuzz:
-        for y in edot_fuzz:
-            rule[i] = x*y
-            i += 1
+    while r.successful() and r.t < t1:
+        r.integrate(r.t + dt)
+        state[i] = r.y
+        t.append(r.t)
+        i += 1
 
-    return rule
-
-def make_singelton_mfx(univ, params):
-    y = []
-    for x in univ:
-        if x < params or x > params:
-            y.append(0)
-        elif x == params:
-            y.append(1)
-
-    return y
-
-def main(params, univ):
-    e_univ, edot_univ = univ
-    e_params, edot_params, rule_params = params
-
-    # generate the mfx
-    e_mfx = []
-    edot_mfx = []
-    rule_mfx = []
-
-    for i in range(len(e_params)):
-        e_mfx.append(fuzz.trimf(e_univ, e_params[i]))
-    for i in range(len(edot_params)):
-        edot_mfx.append(fuzz.trimf(edot_univ, edot_params[i]))
-    for i in range(len(rule_params)):
-        rule_mfx.append(make_singelton_mfx(rule_univ, rule_params[i]))
+    plt.plot(t, state[:,0])
+    plt.show()
 
 if __name__ == '__main__':
-    e_univ = np.linspace(-0.5, 0.5, 5)
-    edot_univ = np.linspace(-4, 4, 5)
-    rule_univ = np.linspace(-10, 10, 5)
-    e_params = np.array([[-0.5, -0.5, -0.25],
-                         [-0.5, -0.25, -0.0],
-                         [-0.25, 0.0, 0.25],
-                         [0.0, 0.25, 0.5],
-                         [0.25, 0.5, 0.5]])
-    edot_params = np.array([[-4, -4, -2],
-                         [-4, -2, -0],
-                         [-2, 0, 2],
-                         [0, 2, 4],
-                         [2, 4, 4]])
-    rule_params = np.array([-10, -5, 0, 5, 10])
-
-    univ = [e_univ, edot_univ, rule_univ]
-    params = [e_params, edot_params, rule_params]
-
-    main(params, univ)
+    main()
