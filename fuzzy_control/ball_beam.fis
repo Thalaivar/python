@@ -1,0 +1,69 @@
+[System]
+Name='ball_beam'
+Type='mamdani'
+Version=2.0
+NumInputs=2
+NumOutputs=1
+NumRules=25
+AndMethod='prod'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='e-fuzz'
+Range=[-0.5 0.5]
+NumMFs=5
+MF1='NL':'trimf',[-1 -0.5 -0.25]
+MF2='NS':'trimf',[-0.5 -0.25 0]
+MF3='Z':'trimf',[-0.25 0 0.25]
+MF4='PS':'trimf',[0 0.25 0.5]
+MF5='PL':'trimf',[0.25 0.5 1]
+
+[Input2]
+Name='edot-fuzz'
+Range=[-4 4]
+NumMFs=5
+MF1='NL':'trimf',[-6 -4 -2]
+MF2='NS':'trimf',[-4 -2 0]
+MF3='Z':'trimf',[-2 0 2]
+MF4='PS':'trimf',[0 2 4]
+MF5='PL':'trimf',[2 4 6]
+
+[Output1]
+Name='u'
+Range=[-10 10]
+NumMFs=5
+MF1='NL':'trimf',[-10 -10 -10]
+MF2='NS':'trimf',[-5 -5 -5]
+MF3='Z':'trimf',[0 0 0]
+MF4='PS':'trimf',[5 5 5]
+MF5='PL':'trimf',[10 10 10]
+
+[Rules]
+1 1, 1 (1) : 1
+1 2, 1 (1) : 1
+1 3, 1 (1) : 1
+1 4, 2 (1) : 1
+1 5, 3 (1) : 1
+2 1, 1 (1) : 1
+2 2, 1 (1) : 1
+2 3, 2 (1) : 1
+2 4, 3 (1) : 1
+2 5, 4 (1) : 1
+3 1, 1 (1) : 1
+3 2, 2 (1) : 1
+3 3, 3 (1) : 1
+3 4, 4 (1) : 1
+3 5, 5 (1) : 1
+4 1, 2 (1) : 1
+4 2, 3 (1) : 1
+4 3, 4 (1) : 1
+4 4, 5 (1) : 1
+4 5, 5 (1) : 1
+5 1, 3 (1) : 1
+5 2, 4 (1) : 1
+5 3, 5 (1) : 1
+5 4, 5 (1) : 1
+5 5, 5 (1) : 1
