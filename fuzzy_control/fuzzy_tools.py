@@ -5,6 +5,13 @@ import math
 
 # membership function class
 class membership():
+    """
+        Class to form the membership functions for a given universe:
+            * type - singleton, trimf
+            * params - the defining parameters of the corresponding type of fuzzy membership
+            * univ - the universe on which the fuzzy membership is defined
+            * name - the name of the membership
+    """
     def __init__(self, type, params, univ, name):
         self.type = type
         self.params = params
@@ -41,7 +48,6 @@ class membership():
                 if a < np.amin(univ) or a > np.amax(univ):
                     print("Check params for singleton: not in univ")
                     print(params)
-
 
 # plot the array returned by make_memship
 def plot_memship(memship, univ):
@@ -153,4 +159,3 @@ def defuzzify(fuzz_val ,memship, method):
                 y += a*fuzz_val[i]
                 z += fuzz_val[i]
         return y/z
-    
