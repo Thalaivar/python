@@ -52,12 +52,12 @@ class membership():
                     print(params)
 
         if type == 'gauss':
-            if len(params) != 2:
+            if len(params) != 3:
                 print("Check params for gaussian: not proper no. of params")
                 print(params)
 
             else:
-                a, b = params
+                a, b, c = params
                 if min(a, b) < np.amin(univ) or max(a, b) > np.amax(univ):
                     print("Check params for gaussian: not in univ")
                     print(params)
@@ -123,7 +123,7 @@ def fuzzify(x, membership):
     params = membership.params
     type = membership.type
     univ = membership.univ
-
+    membership.fuzz_val = 0
     # make sure x is in the universe
     if x < np.amin(univ) or x > np.amax(univ):
         print("value to be fuzzified not in the universe")
@@ -132,7 +132,6 @@ def fuzzify(x, membership):
 
     elif type == 'trimf':
         a, b, c = params
-
         if a == b:
             if x <= a:
                 membership.fuzz_val = 1
@@ -162,8 +161,19 @@ def fuzzify(x, membership):
             membership.fuzz_val = 0.0
 
     elif type == 'gauss':
-        a, b = params
-        membership.fuzz_val = math.exp(-0.5*(((x - a)**2)/b))
+        a, b, c = params
+        if c == 'l_inf':
+            if x <= a:
+                membership.fuzz_val = 1.0
+            else:
+                membership.fuzz_val = math.exp(-0.5*(((x - a)**2)/b))
+        elif c == 'r_inf':
+            if x >= a:
+                memebership.fuzz_val = 1.0
+            else:
+                membership.fuzz_val = math.exp(-0.5*(((x - a)**2)/b))
+        else:
+            membership.fuzz_val = math.exp(-0.5*(((x - a)**2)/b))
 
 # returns crisp value of a fuzzy memship
 def defuzzify(fuzz_val ,memship, method):

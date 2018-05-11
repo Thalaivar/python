@@ -71,15 +71,19 @@ def ball_beam_rule_set(x, y):
 def model(t, X, params):
     x1, x2 = X
     e = -x1
-    edot = -18*x2
+    edot = -x2
     e_mem, edot_mem, v_mem = params
 
     e_fuzz_mem = []
     edot_fuzz_mem = []
+    for z in e_mem:
+        fuzz.fuzzify(e, z)
+        e_fuzz_mem.append(z.fuzz_val)
 
-    for i in range(len(e_mem)):
-        e_fuzz_mem.append(fuzz.fuzzify(e, e_mem[i]))
-        edot_fuzz_mem.append(fuzz.fuzzify(edot, edot_mem[i]))
+
+    for z in edot_mem:
+        fuzz.fuzzify(edot, z)
+        edot_fuzz_mem.append(z.fuzz_val)
 
     rule_out = ball_beam_rule_set(e_fuzz_mem, edot_fuzz_mem)
 
@@ -95,18 +99,18 @@ def main():
     edot_mem = []
     v_mem = []
 
-    e_fuzz_set_1 = [-0.5, -0.5, -0.25]
-    e_fuzz_set_2 = [-0.5, -0.25, 0]
-    e_fuzz_set_3 = [-0.25, 0.0, 0.25]
-    e_fuzz_set_4 = [0.0, 0.25, 0.5]
-    e_fuzz_set_5 = [0.25, 0.5, 0.5]
+    e_fuzz_set_1 = [-0.5, 0.5, 'l_inf']
+    e_fuzz_set_2 = [-0.25, 0.5, 'none']
+    e_fuzz_set_3 = [0, 0.5, 'none']
+    e_fuzz_set_4 = [0.25, 0.5, 'none']
+    e_fuzz_set_5 = [0.5, 0.5, 'r_inf']
     e_univ = np.linspace(-20.5, 20.5, 120)
 
-    edot_fuzz_set_1 = [-4, -4, -2]
-    edot_fuzz_set_2 = [-4, -2, 0]
-    edot_fuzz_set_3 = [-2, 0, 2]
-    edot_fuzz_set_4 = [0, 2, 4]
-    edot_fuzz_set_5 = [2, 4, 4]
+    edot_fuzz_set_1 = [-4, 0.5, 'l_inf']
+    edot_fuzz_set_3 = [-2, 0.5, 'none']
+    edot_fuzz_set_4 = [0, 0.5, 'none']
+    edot_fuzz_set_5 = [2, 0.5, 'none']
+    edot_fuzz_set_2 = [4, 0.5, 'r_inf']
     edot_univ = np.linspace(-30, 30, 100)
 
     v_fuzz_set_1 = [-10.0]
@@ -121,13 +125,13 @@ def main():
     v_fuzz_set = [v_fuzz_set_1, v_fuzz_set_2, v_fuzz_set_3, v_fuzz_set_4, v_fuzz_set_5]
     names = ['NL', 'NS', 'Z', 'PS', 'PL']
     for i in range(len(edot_fuzz_set)):
-        e_mem.append(fuzz.membership('trimf', e_fuzz_set[i], e_univ, names[i]))
-        edot_mem.append(fuzz.membership('trimf', edot_fuzz_set[i], edot_univ, names[i]))
+        e_mem.append(fuzz.membership('gauss', e_fuzz_set[i], e_univ, names[i]))
+        edot_mem.append(fuzz.membership('gauss', edot_fuzz_set[i], edot_univ, names[i]))
         v_mem.append(fuzz.membership('singleton', v_fuzz_set[i], v_univ, names[i]))
 
     params = [e_mem, edot_mem, v_mem]
 
-    x0 = [-0.12, 1.0]
+    x0 = [-0.12, 0.0]
     t0 = 0
     t1 = 10
     dt = 0.01
