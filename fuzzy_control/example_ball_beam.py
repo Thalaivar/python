@@ -4,6 +4,8 @@ from scipy.integrate import ode
 import math
 import matplotlib.pyplot as plt
 
+u = []
+
 def ball_beam_rule_set(x, y):
     z = np.zeros((5,))
     z1 = 0
@@ -69,7 +71,7 @@ def ball_beam_rule_set(x, y):
 def model(t, X, params):
     x1, x2 = X
     e = -x1
-    edot = -x2
+    edot = -18*x2
     e_mem, edot_mem, v_mem = params
 
     e_fuzz_mem = []
@@ -82,9 +84,9 @@ def model(t, X, params):
     rule_out = ball_beam_rule_set(e_fuzz_mem, edot_fuzz_mem)
 
     v = fuzz.defuzzify(rule_out, v_mem, 'CAD')
-
+    u.append(v)
     x1dot = x2
-    x2dot = 9.81*math.sin(0.2*v)
+    x2dot = 9.81*math.sin(0.02*v)
 
     return [x1dot, x2dot]
 
@@ -96,23 +98,23 @@ def main():
     e_fuzz_set_1 = [-0.5, -0.5, -0.25]
     e_fuzz_set_2 = [-0.5, -0.25, 0]
     e_fuzz_set_3 = [-0.25, 0.0, 0.25]
-    e_fuzz_set_4 = [-0.25, 0.0, 0.25]
+    e_fuzz_set_4 = [0.0, 0.25, 0.5]
     e_fuzz_set_5 = [0.25, 0.5, 0.5]
-    e_univ = np.linspace(-1.5, 1.5, 30)
+    e_univ = np.linspace(-20.5, 20.5, 120)
 
     edot_fuzz_set_1 = [-4, -4, -2]
     edot_fuzz_set_2 = [-4, -2, 0]
     edot_fuzz_set_3 = [-2, 0, 2]
     edot_fuzz_set_4 = [0, 2, 4]
     edot_fuzz_set_5 = [2, 4, 4]
-    edot_univ = np.linspace(-5, 5, 10)
+    edot_univ = np.linspace(-30, 30, 100)
 
     v_fuzz_set_1 = [-10.0]
     v_fuzz_set_2 = [-5.0]
     v_fuzz_set_3 = [0.0]
     v_fuzz_set_4 = [5.0]
     v_fuzz_set_5 = [10.0]
-    v_univ = np.linspace(-10, 10, 100)
+    v_univ = np.linspace(-30, 30, 200)
 
     e_fuzz_set = [e_fuzz_set_1, e_fuzz_set_2, e_fuzz_set_3, e_fuzz_set_4, e_fuzz_set_5]
     edot_fuzz_set = [edot_fuzz_set_1, edot_fuzz_set_2, edot_fuzz_set_3, edot_fuzz_set_4, edot_fuzz_set_5]
@@ -133,6 +135,7 @@ def main():
     state = np.zeros((1001,2))
     t = []
     i = 0
+
     while r.successful() and r.t < t1:
         r.integrate(r.t + dt)
         state[i] = r.y
@@ -140,6 +143,7 @@ def main():
         i += 1
 
     plt.plot(t, state[:,0])
+    plt.grid()
     plt.show()
 
 if __name__ == '__main__':

@@ -17,6 +17,8 @@ class membership():
         self.params = params
         self.univ = univ
         self.name = name
+        self.fuzz_val = None
+        self.memship_arr = np.zeros_like(univ)
         self.check_params()
 
     def check_params(self):
@@ -49,10 +51,21 @@ class membership():
                     print("Check params for singleton: not in univ")
                     print(params)
 
+        if type == 'gauss':
+            if len(params) != 2:
+                print("Check params for gaussian: not proper no. of params")
+                print(params)
+
+            else:
+                a, b = params
+                if min(a, b) < np.amin(univ) or max(a, b) > np.amax(univ):
+                    print("Check params for gaussian: not in univ")
+                    print(params)
+
 # plot the array returned by make_memship
-def plot_memship(memship, univ):
+def plot_memship(memship):
     for i in range(len(memship)):
-            plt.plot(univ, memship[i])
+        plt.plot(memship[i].univ, memship[i].memship_arr)
     plt.show()
 
 # returns an array to use for plotting
@@ -64,54 +77,57 @@ def make_memship(membership):
     if type == 'trimf':
         if len(params) == 3:
             a, b, c = params
-            y = np.zeros_like(univ)
             i = 0
             for x in univ:
                 if a == b:
                     if x <= a:
-                        y[i] = 1
+                        membership.memship_arr[i] = 1
                     if x >= b and x <= c:
-                        y[i] = (1/(b - c))*(x - c)
+                        membership.memship_arr[i] = (1/(b - c))*(x - c)
 
                 elif x >= a and x <= b:
-                    y[i] = (1/(b - a))*(x - a)
+                    membership.memship_arr[i] = (1/(b - a))*(x - a)
 
                 if b == c:
                     if x >= b:
-                        y[i] = 1
+                        membership.memship_arr[i] = 1
                     if x >= a and x <= b:
-                        y[i] = (1/(b - a))*(x - a)
+                        membership.memship_arr[i] = (1/(b - a))*(x - a)
 
                 elif x >= b and x <= c:
-                    y[i] = (1/(b - c))*(x - c)
+                    membership.memship_arr[i] = (1/(b - c))*(x - c)
 
                 if x == b:
-                    y[i] = 1
+                    membership.memship_arr[i] = 1
                 i += 1
 
     if type == 'singleton':
         a = params
-        y = np.zeros_like(univ)
         i = 0
         for x in univ:
             if x == a:
-                y[i] = 1.0
+                membership.memship_arr[i] = 1.0
             else:
-                y[i] = 0.0
-            i +=1
+                membership.memship_arr[i] = 0.0
+            i += 1
 
-    return y
+    if type == 'gauss':
+        a, b = params
+        i = 0
+        for x in univ:
+            membership.memship_arr[i] = math.exp(-0.5*(((x - a)**2)/b))
+            i += 1
 
 # returns fuzzy membership of x
 def fuzzify(x, membership):
     params = membership.params
     type = membership.type
     univ = membership.univ
-    y = 0
 
     # make sure x is in the universe
     if x < np.amin(univ) or x > np.amax(univ):
         print("value to be fuzzified not in the universe")
+        print(x)
         return None
 
     elif type == 'trimf':
@@ -119,34 +135,35 @@ def fuzzify(x, membership):
 
         if a == b:
             if x <= a:
-                y = 1
+                membership.fuzz_val = 1
             if x >= b and x <= c:
-                y = (1/(b - c))*(x - c)
+                membership.fuzz_val = (1/(b - c))*(x - c)
 
         elif x >= a and x <= b:
-            y = (1/(b - a))*(x - a)
+            membership.fuzz_val = (1/(b - a))*(x - a)
 
         if b == c:
             if x >= b:
-                y = 1
+                membership.fuzz_val = 1
             if x >= a and x <= b:
-                y = (1/(b - a))*(x - a)
+                membership.fuzz_val = (1/(b - a))*(x - a)
 
         elif x >= b and x <= c:
-            y = (1/(b - c))*(x - c)
+            membership.fuzz_val = (1/(b - c))*(x - c)
 
         if x == b:
-            y = 1
+            membership.fuzz_val = 1
 
     elif type == 'singleton':
         a = params[0]
-
         if x == a:
-            y == 1.0
+            membership.fuzz_val == 1.0
         else:
-            y = 0.0
+            membership.fuzz_val = 0.0
 
-    return y
+    elif type == 'gauss':
+        a, b = params
+        membership.fuzz_val = math.exp(-0.5*(((x - a)**2)/b))
 
 # returns crisp value of a fuzzy memship
 def defuzzify(fuzz_val ,memship, method):
@@ -156,6 +173,15 @@ def defuzzify(fuzz_val ,memship, method):
         for i in range(len(memship)):
             if memship[i].type == 'singleton':
                 a = memship[i].params[0]
+                y += a*fuzz_val[i]
+                z += fuzz_val[i]
+            if memship[i].type == 'trimf':
+                a, b, c = memship[i].params
+                if (b - a) == (c - b):
+                    y += b*fuzz_val[i]
+                    z += fuzz_val[i]
+            if memship[i].type == 'gauss':
+                a, b = memeship[i].params
                 y += a*fuzz_val[i]
                 z += fuzz_val[i]
         return y/z
