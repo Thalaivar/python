@@ -65,7 +65,8 @@ class membership():
 # plot the array returned by make_memship
 def plot_memship(memship):
     for i in range(len(memship)):
-        plt.plot(memship[i].univ, memship[i].memship_arr)
+        plt.plot(memship[i].univ, memship[i].memship_arr, label=memship[i].name)
+        plt.legend(loc='upper right')
     plt.show()
 
 # returns an array to use for plotting
@@ -112,10 +113,22 @@ def make_memship(membership):
             i += 1
 
     if type == 'gauss':
-        a, b = params
+        a, b, c= params
         i = 0
         for x in univ:
-            membership.memship_arr[i] = math.exp(-0.5*(((x - a)**2)/b))
+            if c == 'l_inf':
+                if x <= a:
+                    membership.memship_arr[i] = 1.0
+                else:
+                    membership.memship_arr[i] = math.exp(-0.5*(((x - a)**2)/b))
+            elif c == 'r_inf':
+                if x >= a:
+                    membership.memship_arr[i] = 1.0
+                else:
+                    membership.memship_arr[i] = math.exp(-0.5*(((x - a)**2)/b))
+            else:
+                membership.memship_arr[i] = math.exp(-0.5*(((x - a)**2)/b))
+
             i += 1
 
 # returns fuzzy membership of x
@@ -191,7 +204,7 @@ def defuzzify(fuzz_val ,memship, method):
                     y += b*fuzz_val[i]
                     z += fuzz_val[i]
             if memship[i].type == 'gauss':
-                a, b = memeship[i].params
+                a, b, c = memship[i].params
                 y += a*fuzz_val[i]
                 z += fuzz_val[i]
         return y/z
