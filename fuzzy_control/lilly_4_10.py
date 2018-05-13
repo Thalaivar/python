@@ -45,10 +45,11 @@ def main():
     r = ode(model).set_integrator('vode').set_f_params(params).set_initial_value(x0, t0)
     while r.successful() and r.t < t1:
         r.integrate(r.t + dt)
+        xdes = (math.pi/2) + math.sin(math.pi*r.t)
         state[i] = r.y
+        state[i,0] = xdes - state[i,0]
         t.append(r.t)
         i += 1
-
     plt.plot(t, state[:,0])
     plt.show()
 def rule_set(x, y):
