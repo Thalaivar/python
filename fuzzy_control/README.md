@@ -1,7 +1,7 @@
 Toolkit for fuzzy logic implementation
 =======================================
 
-__Version:__ 1.0
+__Version:__ 1.1.1
 
 Support:
 --------
@@ -9,6 +9,7 @@ Support:
 1. Membership functions (type)
     * Triangular
     * Singleton
+    * Gaussian
 
 2. Defuzzification (method)
     * Centre average defuzzification
@@ -22,19 +23,25 @@ Guide:
 the different types of membership functions supported are listen in __Support__
 for each membership function type, there is an expected parameter vector that
 must be supplied:
+
+- each class holds the following data:
+   1. `membership.type`     - type of membership function
+   2. `membership.univ`     - universe of definition membership function
+   3. `membership.params`   - parameters defining the membership function
+   4. `membership.fuzz_val` - fuzzified value of a partiuclar variable related to the membership function
+   5. `membership.memship_arr` - the array used to plot the membership function
+   6. `membership.name`     - the name of the memebrship function
       
 | membership | parameter form | description |
 | :--------: | :------------: | :---------: |
 | trimf      | [a, b, c]      | a, b, c represent the left, center and right points of the triangle |
 | singleton  | [a]            | a represents the location of the singleton |
-
-- *name* refers to the linguistic name that is given to the fuzzy membership function, it is of use only when plotting
-- *univ* refers to the universe over which the fuzzy membership is defined
+| gaussian   | [a, b, c]      | a, b represent the centre and spread, c is a keyword argument |
 
 `make_memship(membership)`:
 
 - __Input:__ membership class instance
-- __Returns:__ array with y-values of membership
+- __Operation:__ accesses the `membership.memship_arr` array by filling it with the y-values of the membership
 - __Use:__ for plotting membership functions
 
 `fuzzify(x, membership)`:
