@@ -51,9 +51,9 @@ def get_estimate(data_point_x, prev_lam, prev_theta):
     # RLS update
     new_y = data_point_y(data_point_x)
     gamma = (np.dot(prev_lam, phi))/(1 + np.dot(phi_t, np.dot(prev_lam, phi)))
-    R_x_R_identity = np.zeros_like(np.dot(phi_t, phi))
+    R_x_R_identity = np.identity(4)
     new_lam = np.dot((R_x_R_identity - np.dot(gamma, phi_t)), prev_lam)
-    new_theta = np.dot((R_x_R_identity - np.dot(gamma, phi_t)), prev_theta) + np.dot(new_lam, new_y*phi)
+    new_theta = prev_theta + np.dot(gamma, (new_y - np.dot(phi_t, prev_theta)))
 
     return new_theta, new_lam
 
@@ -89,7 +89,11 @@ def get_inital_estimate(data_point_x):
 # simulation
 def main():
     data_point_x = random.random()*6.0
-    first_theta, first_lam = get_inital_estimate(data_point_x)
+
+    #first_theta, first_lam = get_inital_estimate(data_point_x)
+
+    first_theta = np.zeros((4,))
+    first_lam = 1000000*np.identity(4)
 
     for i in range(n_points):
         data_point_x = random.random()*6.0
@@ -99,6 +103,7 @@ def main():
             prev_theta, prev_lam = get_estimate(data_point_x, prev_lam, prev_theta)
 
     final_theta = prev_theta
+    print(final_theta)
 
     # comparison
     new_func = np.zeros_like(x)
