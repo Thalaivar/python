@@ -58,7 +58,7 @@ class membership():
 
             else:
                 a, b, c = params
-                if min(a, b) < np.amin(univ) or max(a, b) > np.amax(univ):
+                if a < np.amin(univ) or a > np.amax(univ):
                     print("Check params for gaussian: not in univ")
                     print(params)
 
