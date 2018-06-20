@@ -22,29 +22,23 @@ def make_fuzzy_sets():
     return memship
 
 def model(t, X, params):
-    e = X
-    lam, gam, memship = params
+    x, theta = X
+    lam, gam , memship = params
 
-    phi = get_fuzzy_basis(e, memship)
-    phi_t = np.transpose(phi)
+    phi = get_fuzzy_basis(x, memship)
 
-    new_theta = lam*gam*e*phi_t
-
-    u = np.dot(phi_t, new_theta)
-
-    x_dot = ((1 - math.exp(-x))/(1 + math.exp(-x))) + u
-    return x_dot
 
 def get_fuzzy_basis(x, memship):
     fuzz_basis = np.zeros((len(memship,)))
     for i in range(len(memship)):
         fuzz.fuzzify(x, memship[i])
-        temp[i] = memship[i].fuzz_val
-        temp = temp.reshape((5,1))
+        fuzz_basis[i] = memship[i].fuzz_val
+
     return fuzz_basis
 
 def simulate(memship):
-    x0 = [0, 0, 0, 0]
+    theta_0 = np.zeros((5,1))
+    x0 = [0, theta_0]
     t0 = 0
     dt = 0.01
     t1 = 10
